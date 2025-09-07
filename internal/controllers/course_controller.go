@@ -3,17 +3,18 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"github.com/gin-gonic/gin"
 	"plataforma-cursos/internal/models"
 	"plataforma-cursos/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CourseController struct {
-	service services.CourseService
+	Service *services.CourseService
 }
 
-func NewCourseController(service services.CourseService) *CourseController {
-	return &CourseController{service: service}
+func NewCourseController(service *services.CourseService) *CourseController {
+	return &CourseController{Service: service}
 }
 
 func (c *CourseController) CreateCourse(ctx *gin.Context) {
@@ -22,7 +23,7 @@ func (c *CourseController) CreateCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.service.AddCourse(course)
+	c.Service.AddCourse(course)
 	ctx.JSON(http.StatusCreated, course)
 }
 
@@ -33,7 +34,7 @@ func (c *CourseController) GetCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	course, err := c.service.FindCourse(id)
+	course, err := c.Service.FindCourse(id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
@@ -54,7 +55,7 @@ func (c *CourseController) UpdateCourse(ctx *gin.Context) {
 		return
 	}
 	course.ID = id
-	if err := c.service.ModifyCourse(course); err != nil {
+	if err := c.Service.ModifyCourse(course); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
 	}
@@ -68,7 +69,7 @@ func (c *CourseController) DeleteCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	if err := c.service.RemoveCourse(id); err != nil {
+	if err := c.Service.RemoveCourse(id); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
 	}

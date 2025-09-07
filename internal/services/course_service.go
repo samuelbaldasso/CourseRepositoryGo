@@ -1,67 +1,63 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
-	"sync"
 	"plataforma-cursos/internal/models"
 )
 
 type CourseService struct {
-	courses map[int]models.Course
-	mu      sync.Mutex
-	nextID  int
+	db *sql.DB
 }
 
-func NewCourseService() *CourseService {
-	return &CourseService{
-		courses: make(map[int]models.Course),
-		nextID:  1,
-	}
+func NewCourseService(db *sql.DB) *CourseService {
+	return &CourseService{db: db}
 }
 
 func (s *CourseService) AddCourse(course models.Course) (models.Course, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	course.ID = s.nextID
-	s.nextID++
-
-	if _, exists := s.courses[course.ID]; exists {
-		return models.Course{}, errors.New("course already exists")
+	query := `INSERT INTO courses (title, description, duration) VALUES ($1, $2, $3) RETURNING id`
+	err := s.db.QueryRow(query, course.Title, course.Description, course.Duration).Scan(&course.ID)
+	if err != nil {
+		return models.Course{}, err
 	}
-	s.courses[course.ID] = course
 	return course, nil
 }
 
 func (s *CourseService) FindCourse(id int) (models.Course, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	course, exists := s.courses[id]
-	if !exists {
+	var course models.Course
+	query := `SELECT id, title, description, duration FROM courses WHERE id = $1`
+	row := s.db.QueryRow(query, id)
+	err := row.Scan(&course.ID, &course.Title, &course.Description, &course.Duration)
+	if err == sql.ErrNoRows {
 		return models.Course{}, errors.New("course not found")
+	} else if err != nil {
+		return models.Course{}, err
 	}
 	return course, nil
 }
 
 func (s *CourseService) ModifyCourse(course models.Course) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if _, exists := s.courses[course.ID]; !exists {
+	query := `UPDATE courses SET title=$1, description=$2, duration=$3 WHERE id=$4`
+	res, err := s.db.Exec(query, course.Title, course.Description, course.Duration, course.ID)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
 		return errors.New("course not found")
 	}
-	s.courses[course.ID] = course
 	return nil
 }
 
 func (s *CourseService) RemoveCourse(id int) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if _, exists := s.courses[id]; !exists {
+	query := `DELETE FROM courses WHERE id=$1`
+	res, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
 		return errors.New("course not found")
 	}
-	delete(s.courses, id)
 	return nil
 }

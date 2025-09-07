@@ -7,15 +7,16 @@ import (
 	"strings"
 	"github.com/gin-gonic/gin"
 	"fmt"
+	"os"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
-	const rawToken = "secrettoken"
-	hash := sha256.Sum256([]byte(rawToken))
-	hashedToken := hex.EncodeToString(hash[:])
-	fmt.Println("Hashed token for validation:", hashedToken)
-
 	return func(c *gin.Context) {
+		rawToken := os.Getenv("SECRET_KEY")
+		hash := sha256.Sum256([]byte(rawToken))
+		hashedToken := hex.EncodeToString(hash[:])
+		fmt.Println("Hashed token for validation:", hashedToken)
+
 		token := c.GetHeader("Authorization")
 		if token == "" || !strings.HasPrefix(token, "Bearer ") {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})

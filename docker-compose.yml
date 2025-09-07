@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: plataforma-cursos-db
+    restart: always
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: plataforma-cursos-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/courses_db?sslmode=disable
+      PORT: 8080
+      SECRET_KEY: secret_key
+    ports:
+      - "8080:8080"
+    restart: always
+    command: ["./plataforma-cursos"]
+
+volumes:
+  db_data:

@@ -1,12 +1,14 @@
-package services
+package services_test
 
 import (
-	"testing"
+	"plataforma-cursos/internal/di"
 	"plataforma-cursos/internal/models"
+	_ "plataforma-cursos/internal/services"
+	"testing"
 )
 
 func TestAddUser(t *testing.T) {
-	svc := NewUserService()
+	svc := di.InitializeUserController().Service
 	user := models.User{Name: "João", Email: "joao@email.com"}
 	created, err := svc.AddUser(user)
 	if err != nil {
@@ -18,7 +20,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestAddUser_DuplicateEmail(t *testing.T) {
-	svc := NewUserService()
+	svc := di.InitializeUserController().Service
 	user := models.User{Name: "João", Email: "joao@email.com"}
 	_, _ = svc.AddUser(user)
 	_, err := svc.AddUser(user)
@@ -28,7 +30,7 @@ func TestAddUser_DuplicateEmail(t *testing.T) {
 }
 
 func TestFindUser(t *testing.T) {
-	svc := NewUserService()
+	svc := di.InitializeUserController().Service
 	user := models.User{Name: "Maria", Email: "maria@email.com"}
 	created, _ := svc.AddUser(user)
 	found, err := svc.FindUser(created.ID)
@@ -41,7 +43,7 @@ func TestFindUser(t *testing.T) {
 }
 
 func TestModifyUser(t *testing.T) {
-	svc := NewUserService()
+	svc := di.InitializeUserController().Service
 	user := models.User{Name: "Ana", Email: "ana@email.com"}
 	created, _ := svc.AddUser(user)
 	created.Name = "Ana Paula"
@@ -56,7 +58,7 @@ func TestModifyUser(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
-	svc := NewUserService()
+	svc := di.InitializeUserController().Service
 	user := models.User{Name: "Carlos", Email: "carlos@email.com"}
 	created, _ := svc.AddUser(user)
 	err := svc.RemoveUser(created.ID)

@@ -1,26 +1,32 @@
-package controllers
+package controllers_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"testing"
+	"plataforma-cursos/internal/controllers"
+	"plataforma-cursos/internal/di"
 	"plataforma-cursos/internal/models"
-	"plataforma-cursos/internal/services"
+	"strconv"
+	"testing"
+
+	_ "plataforma-cursos/internal/services"
+
 	"github.com/gin-gonic/gin"
-	"fmt"
 )
 
-func setupUserController() (*UserController, *services.UserService) {
-	svc := services.NewUserService()
-	ctrl := NewUserController(*svc)
-	return ctrl, svc
+func setupUserController() *controllers.UserController {
+	ctrl := di.InitializeUserController()
+	if ctrl == nil || ctrl.Service == nil {
+		panic("UserController ou Service está nil. Verifique a configuração do DI e a conexão com o banco.")
+	}
+	return ctrl
 }
 
 func TestCreateUserController(t *testing.T) {
+	ctrl := setupUserController()
 	gin.SetMode(gin.TestMode)
-	ctrl, _ := setupUserController()
 	r := gin.New()
 	r.POST("/users", ctrl.CreateUser)
 
@@ -37,13 +43,13 @@ func TestCreateUserController(t *testing.T) {
 }
 
 func TestGetUserController(t *testing.T) {
+	ctrl := setupUserController()
 	gin.SetMode(gin.TestMode)
-	ctrl, svc := setupUserController()
 	r := gin.New()
 	r.GET("/users/:id", ctrl.GetUser)
-	created, _ := svc.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
+	created, _ := ctrl.Service.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
 	w := httptest.NewRecorder()
-	url := "/users/" + fmt.Sprint(created.ID)
+	url := "/users/" + strconv.Itoa(created.ID)
 	req, _ := http.NewRequest("GET", url, nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -52,15 +58,15 @@ func TestGetUserController(t *testing.T) {
 }
 
 func TestUpdateUserController(t *testing.T) {
+	ctrl := setupUserController()
 	gin.SetMode(gin.TestMode)
-	ctrl, svc := setupUserController()
 	r := gin.New()
 	r.PUT("/users/:id", ctrl.UpdateUser)
-	created, _ := svc.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
+	created, _ := ctrl.Service.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
 	created.Name = "Novo Nome"
 	body, _ := json.Marshal(created)
 	w := httptest.NewRecorder()
-	url := "/users/" + fmt.Sprint(created.ID)
+	url := "/users/" + strconv.Itoa(created.ID)
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	r.ServeHTTP(w, req)
@@ -70,13 +76,13 @@ func TestUpdateUserController(t *testing.T) {
 }
 
 func TestDeleteUserController(t *testing.T) {
+	ctrl := setupUserController()
 	gin.SetMode(gin.TestMode)
-	ctrl, svc := setupUserController()
 	r := gin.New()
 	r.DELETE("/users/:id", ctrl.DeleteUser)
-	created, _ := svc.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
+	created, _ := ctrl.Service.AddUser(models.User{Name: "Teste", Email: "teste@email.com"})
 	w := httptest.NewRecorder()
-	url := "/users/" + fmt.Sprint(created.ID)
+	url := "/users/" + strconv.Itoa(created.ID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusNoContent {

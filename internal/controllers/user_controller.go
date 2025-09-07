@@ -1,19 +1,20 @@
 package controllers
 
 import (
-	"net/http"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"net/http"
 	"plataforma-cursos/internal/models"
 	"plataforma-cursos/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
-	service services.UserService
+	Service *services.UserService
 }
 
-func NewUserController(service services.UserService) *UserController {
-	return &UserController{service: service}
+func NewUserController(service *services.UserService) *UserController {
+	return &UserController{Service: service}
 }
 
 func (c *UserController) CreateUser(ctx *gin.Context) {
@@ -22,7 +23,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	created, err := c.service.AddUser(user)
+	created, err := c.Service.AddUser(user)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -37,7 +38,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	user, err := c.service.FindUser(id)
+	user, err := c.Service.FindUser(id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -58,7 +59,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 	user.ID = id
-	if err := c.service.ModifyUser(user); err != nil {
+	if err := c.Service.ModifyUser(user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -72,7 +73,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	if err := c.service.RemoveUser(id); err != nil {
+	if err := c.Service.RemoveUser(id); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}

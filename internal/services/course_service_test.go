@@ -1,12 +1,14 @@
-package services
+package services_test
 
 import (
-	"testing"
+	"plataforma-cursos/internal/di"
 	"plataforma-cursos/internal/models"
+	_ "plataforma-cursos/internal/services"
+	"testing"
 )
 
 func TestAddCourse(t *testing.T) {
-	svc := NewCourseService()
+	svc := di.InitializeCourseController().Service
 	course := models.Course{Title: "Go", Description: "Curso Go", Duration: 10}
 	created, err := svc.AddCourse(course)
 	if err != nil {
@@ -18,7 +20,7 @@ func TestAddCourse(t *testing.T) {
 }
 
 func TestFindCourse(t *testing.T) {
-	svc := NewCourseService()
+	svc := di.InitializeCourseController().Service
 	course := models.Course{Title: "Go", Description: "Curso Go", Duration: 10}
 	created, _ := svc.AddCourse(course)
 	found, err := svc.FindCourse(created.ID)
@@ -31,7 +33,7 @@ func TestFindCourse(t *testing.T) {
 }
 
 func TestModifyCourse(t *testing.T) {
-	svc := NewCourseService()
+	svc := di.InitializeCourseController().Service
 	course := models.Course{Title: "Go", Description: "Curso Go", Duration: 10}
 	created, _ := svc.AddCourse(course)
 	mod := models.Course{ID: created.ID, Title: "Go Avançado", Description: "Avançado", Duration: 20}
@@ -46,7 +48,7 @@ func TestModifyCourse(t *testing.T) {
 }
 
 func TestRemoveCourse(t *testing.T) {
-	svc := NewCourseService()
+	svc := di.InitializeCourseController().Service
 	course := models.Course{Title: "Go", Description: "Curso Go", Duration: 10}
 	created, _ := svc.AddCourse(course)
 	err := svc.RemoveCourse(created.ID)
