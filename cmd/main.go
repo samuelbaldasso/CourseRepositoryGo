@@ -1,0 +1,17 @@
+package main
+
+import (
+    "github.com/gin-gonic/gin"
+    "log"
+    "net/http"
+    "plataforma-cursos/internal/routes"
+)
+
+func main() {
+    router := gin.New()
+    routes.SetupRoutes(router)
+    log.Println("Iniciando o servidor na porta 8080...")
+    if err := http.ListenAndServe(":8080", router); err != nil {
+        log.Fatalf("Erro ao iniciar o servidor: %v", err)
+    }
+}
