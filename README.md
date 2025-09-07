@@ -96,4 +96,3 @@ go test ./internal/controllers/...
 ## Contribuição
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
-# CourseRepositoryGo
